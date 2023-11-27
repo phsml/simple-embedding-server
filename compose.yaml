@@ -1,0 +1,31 @@
+services:
+  embeddings:
+    build: .
+    volumes:
+      - "./models:/app/models:cached"
+      - ".:/app"
+    tty: true
+    ports:
+      - "${FASTAPI_PORT}:8000"
+    restart: always
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [ gpu ]
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+    command: uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      emb-network:
+        ipv4_address: ${IPV4_ADDRESS}
+
+networks:
+  emb-network:
+    name: emb-network
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: ${SUBNET}
